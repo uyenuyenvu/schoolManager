@@ -28,17 +28,29 @@
                     <div class="section-block">
                         <!-- metric row -->
                         <div class="metric-row" style="overflow:auto">
-                            <div class="form-group col-5">
-                                <select name="company_id" id="company_id" class="form-control">
+
+                            <form method="GET" action="{{ route('scheduleTeacher') }}">
+                                @csrf
+                                <div class="metric-row" style="width: 100vw">
+
+                                <div class="form-group col-5" style="display: flex">
+                                <select name="id" id="id" class="form-control">
                                     <option value=""></option>
                                     @forelse($teachers as $teacher)
-                                        <option value="{{$teacher->id}}">{{$teacher->name}}</option>
+                                        <option value="{{$teacher->id}}"
+                                            @if($teacher->id === $user->id && $teacher->name === $user->name)
+                                                selected
+                                                @endif
+                                        >{{$teacher->name}}</option>
                                     @empty
                                     @endforelse
                                 </select>
+
+                                <button class="btn btn-success" type="submit" style="margin-bottom: 2%; width: 130px; margin-left: 20px">
+                                    <i class="fa fa-search"> </i> Tìm kiếm</button>
                             </div>
-                            <a class="btn btn-success" id="addCategory" style="margin-bottom: 2%">
-                                <i class="fa fa-search"> </i> Tìm kiếm</a>
+                                </div>
+                            </form>
                         </div>
                         <div class="metric-row" style="overflow:auto">
                             <table class="tablePoint" cellspacing="0">
@@ -58,9 +70,14 @@
                                         <td>{{$indexLesson + 1}}</td>
                                         @for ($indexDay = 0; $indexDay < 7; $indexDay++)
                                             <td>
-                                                @if(rand(1, 10) === $indexLesson)
+                                                <b>
+                                                    @if(isset($schedules[$indexDay][$indexLesson]['team']))
 
-                                                Toán <b>10B1</b>
+                                                        {{$schedules[$indexDay][$indexLesson]['team']->name}}
+                                                    @endif
+                                                </b>
+                                                @if(isset($schedules[$indexDay][$indexLesson]['subject']))
+                                                    :{{$schedules[$indexDay][$indexLesson]['subject']->name}}
                                                 @endif
 
                                             </td>

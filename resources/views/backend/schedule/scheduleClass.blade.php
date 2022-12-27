@@ -48,13 +48,18 @@
                                                 {{--                                                <input type="number" subject-id="{{$subject->id}}" class="point" class-id="{{$class->id}}">--}}
                                                 <select
                                                     style="border: none; width: 100%;outline: none"
-                                                     class="subject_option">
+                                                    index-lesson="{{$indexLesson}}"
+                                                    index-day="{{$indexDay}}"
+                                                    class-id="{{$class->id}}"
+                                                     class="schedule_option">
                                                     <option value=""></option>
                                                     @foreach($subjects as $subject)
                                                         <option value="{{$subject->id}}"
-{{--                                                                @if($assignments[$subject->id][$class->id] === $teacher->id )--}}
-{{--                                                                    selected--}}
-{{--                                                            @endif--}}
+                                                                @if(isset($schedules[$indexDay][$indexLesson]['subject']))
+                                                                @if($schedules[$indexDay][$indexLesson]['subject']->id === $subject->id )
+                                                                    selected
+                                                            @endif
+                                                            @endif
                                                         >{{$subject->name}}</option>
                                                     @endforeach
                                                 </select>

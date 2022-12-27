@@ -40,3 +40,23 @@ $('.teacher_option').on('change', function (e){
     })
   }
 })
+
+$('.schedule_option').on('change', function (e){
+  e.preventDefault()
+  let classId = $(this).attr('class-id');
+  let indexLesson = $(this).attr('index-lesson');
+  let indexDay = $(this).attr('index-day');
+  let subjectId = $(this).val();
+  if (subjectId.length>0){
+    $.ajax({
+      type: 'put',
+      url: '/admin/schedule/update',
+      data:{
+        classId, subjectId, indexLesson,indexDay
+      },
+      success: function(res){
+          console.log(res)
+    }
+    })
+  }
+})

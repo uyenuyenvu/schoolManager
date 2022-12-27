@@ -37,6 +37,7 @@ Route::group(['prefix' => 'admin'], function () {
     });
     Route::get('/assignment', [Backend\ScheduleController::class,'assignmentIndex'])->name('admin.assignment.index');
     Route::put('/assignment/update', [Backend\ScheduleController::class,'assignmentUpdate'])->name('admin.assignment.update');
+    Route::put('/schedule/update', [Backend\ScheduleController::class,'scheduleUpdate'])->name('admin.schedule.update');
     Route::get('/schedule/class', [Backend\ScheduleController::class,'scheduleClass'])->name('admin.schedule.class');
     Route::get('/schedule/{id}', [Backend\ScheduleController::class,'scheduleByClass'])->name('admin.schedule.byClass');
     Route::get('/schedule-teacher', [Backend\ScheduleController::class,'scheduleByTeacher'])->name('scheduleTeacher');

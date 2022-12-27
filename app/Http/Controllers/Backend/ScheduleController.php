@@ -65,41 +65,53 @@ class ScheduleController extends Controller
             'assignment_complete'=>$assignment_complete
         ]);
     }
-    public function scheduleByTeacher()
+    public function scheduleByTeacher(Request $request)
     {
-        $subjects = Subject::all();
-        $assignment_complete = true;
-        $countClass = count(Team::all());
+        $idUser = empty($request->input('id'))?auth()->id():$request->input('id');
         $classes = Team::all();
         $teachers = Teacher::where('is_active',1)->get();
-//        $schedules = []
-//            for($indexLesson = 0; $indexLesson<10; $indexLesson++){
-//                $schedules[$indexLesson]=[];
-//                for ($indexDay = 0; $indexDay<7; $indexDay++){
-//                    $schedules = Schedules::where('day_index', $indexDay)->where('')
-//                    $schedules[$indexLesson]
-//                }
-//            }
 
-        foreach ($subjects as $subject){
-            $ass = count(Assignment::where('subject_id',$subject->id)->whereNotNull('teacher_id')->get());
-            if ($ass < $countClass){
-                $assignment_complete = false;
+        $schedules = collect(Schedules::where('teacher_id', $idUser)->with(['team','subject'])->get());
+        $schedule = [];
+        for ($indexDay = 0; $indexDay < 7; $indexDay++){
+            $schedule[$indexDay]=[];
+            for ($indexLesson=0; $indexLesson < 10; $indexLesson++){
+                $schedule[$indexDay][$indexLesson] = $schedules
+                    ->where('day_index', $indexDay)
+                    ->where('lesson_index', $indexLesson)
+                    ->first();
             }
-            }
+        }
+        $user = Teacher::find($idUser);
+        if (!$user){
+            $user = \auth()->user();
+        }
         return view('backend.schedule.teacher')->with([
             'classes'=>$classes,
-            'assignment_complete'=>$assignment_complete,
             'teachers'=>$teachers,
+            'schedules'=>$schedule,
+            'user'=>$user
         ]);
     }
     public function scheduleByClass($id)
     {
         $class = Team::find($id);
         $subjects = Subject::all();
+        $schedules = collect(Schedules::where('class_id', $id)->with(['teacher','subject'])->get());
+        $schedule = [];
+        for ($indexDay = 0; $indexDay < 7; $indexDay++){
+            $schedule[$indexDay]=[];
+            for ($indexLesson=0; $indexLesson < 10; $indexLesson++){
+                $schedule[$indexDay][$indexLesson] = $schedules
+                                                    ->where('day_index', $indexDay)
+                                                    ->where('lesson_index', $indexLesson)
+                                                    ->first();
+            }
+        }
         return view('backend.schedule.scheduleClass')->with([
             'class'=>$class,
-            'subjects'=>$subjects
+            'subjects'=>$subjects,
+            'schedules'=>$schedule
         ]);
     }
 
@@ -123,6 +135,53 @@ class ScheduleController extends Controller
 
             if ($assignment){
                 $message = 'Cập nhật thành công';
+                return response()->json([
+                    'error'     =>false,
+                    'message'   =>$message,
+                ]);
+            }
+        }catch (\Exception $e) {
+            $message = 'Có 1 lỗi gì đó! chờ dev fix';
+            return response()->json([
+                'error'      =>true,
+                'message'    =>$message
+            ]);
+        }
+    }
+    public function scheduleUpdate(Request $request)
+    {
+        $data = $request->all();
+        try{
+            $assignment = Assignment::where('class_id',$data['classId'])
+                                    ->where('subject_id',$data['subjectId'])
+                                    ->whereNotNull('teacher_id')
+                                    ->first();
+            if ($assignment){
+                $schedule = Schedules::where('class_id',$data['classId'])
+                                    ->where('day_index',$data['indexDay'])
+                                    ->where('lesson_index',$data['indexLesson'])->first();
+                if ($schedule){
+                    $schedule->subject_id = $data['subjectId'];
+                    $schedule->teacher_id = $assignment->teacher_id;
+                    $schedule->save();
+                }else{
+                    $schedule = Schedules::create([
+                        'class_id'=>$data['classId'],
+                        'day_index'=>$data['indexDay'],
+                        'lesson_index'=>$data['indexLesson'],
+                        'subject_id'=>$data['subjectId'],
+                        'teacher_id'=>$assignment->teacher_id,
+                    ]);
+                }
+            }else{
+                return response()->json([
+                    'error'      =>true,
+                    'message'    =>"chưa có giáo viên phụ trách môn học"
+                ]);
+            }
+
+            if ($schedule){
+                $message = 'success';
                 return response()->json([
                     'error'     =>false,
                     'message'   =>$message,
